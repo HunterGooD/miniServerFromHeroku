@@ -10,14 +10,13 @@ import (
 
 func main() {
 	router := gin.Default()
-	router.POST("/api/uploadphoto", uploadPhoto)
+	router.Any("/api/uploadphoto", uploadPhoto)
 
-	router.Any("/", func(c *gin.Context) {
+	router.NoRoute(func(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Only request on /api/uploadphoto",
 		})
 	})
-
 	port := os.Getenv("PORT")
 
 	if port == "" {
