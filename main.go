@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,7 +17,7 @@ func main() {
 		})
 	})
 
-	router.Run(":8080")
+	router.Run(os.Getenv("PORT"))
 }
 
 func uploadPhoto(c *gin.Context) {
