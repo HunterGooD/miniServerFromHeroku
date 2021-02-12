@@ -30,5 +30,9 @@ func uploadPhoto(c *gin.Context) {
 		Latitude  float32
 		Longitude float32
 	}
+
+	c.JSON(http.StatusOK, map[string]string{
+		"response": "OK",
+	})
 	// c.FormFile()
 }
