@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"os"
 
@@ -16,8 +17,12 @@ func main() {
 			"error": "Only request on /api/uploadphoto",
 		})
 	})
+	port := os.Getenv("PORT")
 
-	router.Run(os.Getenv("PORT"))
+	if port == "" {
+		log.Fatal("Port not set")
+	}
+	router.Run(":" + port)
 }
 
 func uploadPhoto(c *gin.Context) {
