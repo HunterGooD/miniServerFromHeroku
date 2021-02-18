@@ -41,15 +41,32 @@ func uploadPhoto(c *gin.Context) {
 
 	longitude := c.Request.FormValue("longitude")
 	latitude := c.Request.FormValue("latitude")
+	if longitude == "" {
+		c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "Пустое значение longitude",
+		})
+	}
+	if latitude == "" {
+		c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "Пустое значение latitude",
+		})
+	}
+
 	photo, photoHeader, err := c.Request.FormFile("photo")
 	if err != nil {
-		panic(err)
+		c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+		return
 	}
 	defer photo.Close()
 
 	buffer := make([]byte, int(photoHeader.Size))
 	if _, err := photo.Read(buffer); err != nil {
-		panic(err)
+		c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": err.Error(),
+		})
+		return
 	}
 
 	hash := createHash([]byte(strconv.Itoa(rand.Int())))
