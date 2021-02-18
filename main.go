@@ -104,6 +104,7 @@ func createHash(b []byte) string {
 }
 
 func deletePhoto(hash string) {
+	log.Printf("/photo/%s", hash)
 	time.Sleep(time.Minute * 10)
 	delete(photos, hash)
 }
