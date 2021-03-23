@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"crypto/sha1"
+	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"log"
@@ -25,36 +25,114 @@ var (
 
 type UserDB struct {
 	gorm.Model
-	Login    string `gorm:"size:30"`
-	Password string `gorm:"size:60"`
+	Login    string      `gorm:"size:30"`
+	Password string      `gorm:"size:60"`
+	Token    string      `gorm:"size:64;index"`
+	Storages []StorageDB `gorm:"foreignKey:UserID"`
 }
 
-func main() {
+type StorageDB struct {
+	gorm.Model
+	NameStorage string   `gorm:"size:60"`
+	Address     string   `gorm:"text"`
+	Autos       []AutoDB `gorm:"foreignKey:StorageID"`
+	UserID      int
+}
 
-	if db, err := gorm.Open(sqlite.Open("user.db"), &gorm.Config{}); err != nil {
+type AutoDB struct {
+	gorm.Model
+	NameAuto  string    `gorm:"size:50`
+	Photos    []PhotoDB `gorm:"many2many:auto_photos"`
+	StorageID int
+}
+
+type PhotoDB struct {
+	gorm.Model
+	Path string `gorm:"size:128`
+	Date time.Time
+}
+
+// InitDB инициализация ДБ
+func InitDB() {
+
+	// var dsn = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
+	// 	"root",
+	// 	"gfhjkm",
+	// 	"localhost",
+	// 	"3306",
+	// 	"fotocontroll",
+	// )
+	// if db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{}); err != nil {
+	// 	panic(err)
+	// } else {
+	// 	DB = db
+	// }
+
+	if db, err := gorm.Open(sqlite.Open("forocontroll.db"), &gorm.Config{}); err != nil {
 		panic(err)
 	} else {
 		DB = db
 	}
-	DB.AutoMigrate(&UserDB{})
+
+	DB.AutoMigrate(&UserDB{}, &StorageDB{}, &AutoDB{}, &PhotoDB{})
+
+	if _, err := os.Stat("forocontroll.db"); os.IsExist(err) {
+		return
+	}
+
 	for i := 0; i < 10; i++ {
 		u := &UserDB{
 			Login:    "user_" + strconv.Itoa(i),
 			Password: "pass_" + strconv.Itoa(i),
+			Storages: []StorageDB{
+				StorageDB{
+					NameStorage: "Storage_" + strconv.Itoa(i),
+					Address:     "city,street,dom_" + strconv.Itoa(i),
+					Autos: []AutoDB{
+						AutoDB{
+							NameAuto: "auto_" + strconv.Itoa(i),
+						},
+						AutoDB{
+							NameAuto: "auto_1." + strconv.Itoa(i),
+						},
+					},
+				},
+				StorageDB{
+					NameStorage: "Storage_" + strconv.Itoa(i),
+					Address:     "city,street,domik_1." + strconv.Itoa(i),
+					Autos: []AutoDB{
+						AutoDB{
+							NameAuto: "auto_2." + strconv.Itoa(i),
+						},
+						AutoDB{
+							NameAuto: "auto_3." + strconv.Itoa(i),
+						},
+					},
+				},
+			},
 		}
-		r := DB.Model(&UserDB{}).Create(u)
+
+		r := DB.Create(u)
 		if r.Error != nil {
 			panic(r.Error)
 		}
 	}
+}
 
-	rand.Seed(time.Now().Unix())
+func main() {
+	InitDB()
 
 	router := gin.Default()
 
-	router.Any("/api/upload", uploadPhoto)
-	router.POST("/api/signin", signIn)
-	router.GET("/photo/:hash", showPhoto)
+	router.Any("/api/upload", uploadPhoto)           // загрузка фото
+	router.POST("/api/signin", signIn)               // авторизация в системе
+	router.GET("/photo/:hash", showPhoto)            // получение фотографий
+	router.GET("/agents", nil)                       // показывает всех агентов
+	router.GET("/api/getStorages", getStoragesAgent) // показывает все склады агента
+	// router.GET("/agent/:id", nil)             // показывает скалды агентов
+	// router.GET("/agent/:id/storages", nil)    // список вех складов агента
+	// router.GET("/agent/:id/storage/:id", nil) // список автомобилей с последней датой обновления
+
 	router.NoRoute(func(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Only request on /api/upload",
@@ -65,14 +143,117 @@ func main() {
 	if port == "" {
 		log.Fatal("Port not set")
 	}
-	router.Run(":" + port)
+	router.Run("192.168.43.13:" + port)
+}
+
+func getStoragesAgent(c *gin.Context) {
+	c.Header("Content-Type", "application/json")
+
+	type AutoS struct {
+		ID       int64  `json:"id"`
+		NameAuto string `json:"name_auto"`
+	}
+
+	type StorageS struct {
+		ID          int64   `json:"id"`
+		NameStorage string  `json:"name_storage"`
+		Address     string  `json:"address"`
+		Autos       []AutoS `json:"autos"`
+	}
+
+	type Response struct {
+		Storages []StorageS `json:"storages"`
+	}
+
+	userToken := c.GetHeader("Authorization") // проверить кто это и записать
+
+	if err := DB.Model(&UserDB{}).Where("token = ?", userToken).First(nil).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusUnauthorized, map[string]string{
+				"error": "Ошибка авторизации",
+			})
+			return
+		}
+		c.JSON(http.StatusUnauthorized, map[string]string{
+			"error": "Ошибка приложения",
+		})
+		return
+	}
+
+	rows, err := DB.Debug().Table("storage_dbs").
+		Select("storage_dbs.id as storage_id, storage_dbs.name_storage, storage_dbs.address, auto_dbs.id as auto_id, auto_dbs.name_auto").
+		Joins("inner join user_dbs on storage_dbs.user_id = user_dbs.id").
+		Joins("inner join auto_dbs on storage_dbs.id = auto_dbs.storage_id").
+		Where("user_dbs.token = ?", userToken).Rows()
+
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, map[string]string{
+			"error": "Ошибка приложения",
+		})
+		return
+	}
+	defer rows.Close()
+
+	res := new(Response)
+	var currentID int64
+
+	for rows.Next() {
+		var s = make(map[string]interface{})
+		DB.ScanRows(rows, s)
+
+		if s["storage_id"] != currentID {
+			currentID = s["storage_id"].(int64)
+
+			res.Storages = append(res.Storages, StorageS{
+				ID:          currentID,
+				NameStorage: s["name_storage"].(string),
+				Address:     s["address"].(string),
+				Autos: []AutoS{
+					AutoS{
+						ID:       s["auto_id"].(int64),
+						NameAuto: s["name_auto"].(string),
+					},
+				},
+			})
+			continue
+		}
+
+		for i := range res.Storages {
+			if res.Storages[i].ID == currentID {
+				res.Storages[i].Autos = append(res.Storages[i].Autos, AutoS{
+					ID:       s["auto_id"].(int64),
+					NameAuto: s["name_auto"].(string),
+				})
+				break
+			}
+		}
+	}
+	c.JSON(http.StatusOK, res)
 }
 
 func uploadPhoto(c *gin.Context) {
+	c.Header("Content-Type", "application/json")
 	var url string
+	userToken := c.GetHeader("Authorization") // проверить кто это и записать
+
+	if err := DB.Model(&UserDB{}).Where("token = ?", userToken).First(nil).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusUnauthorized, map[string]string{
+				"error": "Ошибка авторизации",
+			})
+			return
+		}
+		c.JSON(http.StatusUnauthorized, map[string]string{
+			"error": "Ошибка приложения",
+		})
+		return
+	}
 
 	longitude := c.Request.FormValue("longitude")
 	latitude := c.Request.FormValue("latitude")
+	// id_auto := c.Request.FormValue("id_auto")
+	// id_storage := c.Request.FormValue("id_storage")
+
 	if longitude == "" {
 		c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "Пустое значение longitude",
@@ -84,6 +265,7 @@ func uploadPhoto(c *gin.Context) {
 		})
 	}
 
+	// TODO: загружать картинки в папку photos/ с уникальным именем. и записывать в базу
 	photo, photoHeader, err := c.Request.FormFile("photo")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, map[string]string{
@@ -130,7 +312,7 @@ func showPhoto(c *gin.Context) {
 }
 
 func createHash(b []byte) string {
-	h := sha1.New()
+	h := sha256.New()
 	h.Write(b)
 	return hex.EncodeToString(h.Sum(nil))
 }
@@ -148,8 +330,8 @@ func ValidPassword(password string) bool {
 
 //CheckPasswordLever Сложность пароля
 func CheckPasswordLever(ps string) error {
-	if len(ps) < 9 {
-		return fmt.Errorf("password len is < 9")
+	if len(ps) < 6 {
+		return fmt.Errorf("password len is < 6")
 	}
 	num := `[0-9]{1}`
 	a_z := `[a-z]{1}`
@@ -176,6 +358,7 @@ func ValidLogin(login string) bool {
 }
 
 func signIn(c *gin.Context) {
+	c.Header("Content-Type", "application/json")
 	type user struct {
 		Login    string `json:"login"`
 		Password string `json:"password"`
@@ -186,7 +369,7 @@ func signIn(c *gin.Context) {
 	// без проверки хэша
 	if err := DB.Model(&UserDB{}).Where(map[string]interface{}{"login": u.Login, "password": u.Password}).First(&udb).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, map[string]interface{}{
+			c.JSON(http.StatusOK, map[string]interface{}{
 				"error": "Запись не найдена. Проверьте данные",
 			})
 			return
@@ -196,10 +379,17 @@ func signIn(c *gin.Context) {
 		})
 		return
 	}
-	// пока бесполезно
+
 	t := make([]byte, 5)
 	rand.Read(t)
 	token := createHash(t)
+	if err := DB.Debug().Model(&UserDB{}).Where("login = ?", u.Login).Update("token", token).Error; err != nil {
+		c.JSON(http.StatusOK, map[string]interface{}{
+			"error": "Ошибка при обновлении данных",
+			"err":   err.Error(),
+		})
+		return
+	}
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"token": token,
 	})
