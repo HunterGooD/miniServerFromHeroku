@@ -95,7 +95,7 @@ func InitDB() {
 	port := strings.Split(infoHost[1], "/")[0]
 	dbName := strings.Split(infoHost[1], "/")[1]
 
-	var dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=enable TimeZone=Europe/Samara",
+	var dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=require TimeZone=Europe/Samara",
 		host,
 		user,
 		pass,
