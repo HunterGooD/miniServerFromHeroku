@@ -20,9 +20,11 @@ import (
 
 var (
 	photos = make(map[string][]byte)
-	DB     *gorm.DB
+	//DB соединение с БД
+	DB *gorm.DB
 )
 
+// UserDB Таблица пользователей в БД
 type UserDB struct {
 	gorm.Model
 	Login    string      `gorm:"size:30"`
@@ -31,6 +33,7 @@ type UserDB struct {
 	Storages []StorageDB `gorm:"foreignKey:UserID"`
 }
 
+//StorageDB  Таблица хранилищпользователя в БД
 type StorageDB struct {
 	gorm.Model
 	NameStorage string   `gorm:"size:60"`
@@ -39,6 +42,7 @@ type StorageDB struct {
 	UserID      int
 }
 
+// AutoDB Таблица автомобилей в хранилище
 type AutoDB struct {
 	gorm.Model
 	NameAuto  string    `gorm:"size:50`
@@ -46,6 +50,7 @@ type AutoDB struct {
 	StorageID int
 }
 
+// PhotoDB Фотографии автомобилей
 type PhotoDB struct {
 	gorm.Model
 	Path string `gorm:"size:128`
