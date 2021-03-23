@@ -179,7 +179,7 @@ func main() {
 	if port == "" {
 		log.Fatal("Port not set")
 	}
-	router.Run("192.168.43.13:" + port)
+	router.Run(":" + port)
 }
 
 func getStoragesAgent(c *gin.Context) {
