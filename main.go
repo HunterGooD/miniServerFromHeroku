@@ -11,10 +11,11 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/driver/sqlite"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -73,7 +74,36 @@ func InitDB() {
 	// 	DB = db
 	// }
 
-	if db, err := gorm.Open(sqlite.Open("forocontroll.db"), &gorm.Config{}); err != nil {
+	// if db, err := gorm.Open(sqlite.Open("forocontroll.db"), &gorm.Config{}); err != nil {
+	// 	panic(err)
+	// } else {
+	// 	DB = db
+	// }
+
+	urlDB := os.Getenv("DATABASE_URL")
+	if urlDB == "" {
+		panic("Error url for database  not found")
+	}
+
+	spDB := strings.Split(urlDB, "://")[1]
+	infU := strings.Split(spDB, ":")
+	user := infU[0]
+	pass := strings.Split(infU[1], "@")[0]
+	infH := strings.Split(urlDB, "@")[1]
+	infoHost := strings.Split(infH, ":")
+	host := infoHost[0]
+	port := strings.Split(infoHost[1], "/")[0]
+	dbName := strings.Split(infoHost[1], "/")[1]
+
+	var dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Europe/Samara",
+		host,
+		user,
+		pass,
+		dbName,
+		port,
+	)
+
+	if db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{}); err != nil {
 		panic(err)
 	} else {
 		DB = db
