@@ -178,6 +178,10 @@ func main() {
 	router.GET("/photo/:hash", showPhoto)            // получение фотографий
 	router.GET("/agents", nil)                       // показывает всех агентов
 	router.GET("/api/getStorages", getStoragesAgent) // показывает все склады агента
+	router.GET("/googlea811a0830ed403ac.html", func(c *gin.Context) {
+		c.File("googlea811a0830ed403ac.html")
+	})
+
 	// router.GET("/agent/:id", nil)             // показывает скалды агентов
 	// router.GET("/agent/:id/storages", nil)    // список вех складов агента
 	// router.GET("/agent/:id/storage/:id", nil) // список автомобилей с последней датой обновления
