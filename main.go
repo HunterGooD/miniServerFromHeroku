@@ -118,10 +118,12 @@ func InitDB() {
 	// }
 
 	if err := DB.Model(&UserDB{}).First(nil).Where("login = ?", "user_1").Error; err != nil {
-		if err != gorm.ErrRecordNotFound {
-			log.Println("Тестовые записи не добавлялись")
-			return
+		if err == gorm.ErrRecordNotFound {
+			log.Println("Добавление тестовых данных")
 		}
+	} else {
+		log.Println("Тестовые записи не добавлялись")
+		return
 	}
 
 	for i := 0; i < 10; i++ {
@@ -156,9 +158,9 @@ func InitDB() {
 			},
 		}
 
-		r := DB.Create(u)
-		if r.Error != nil {
-			panic(r.Error)
+		err := DB.FirstOrCreate(u).Error
+		if err != nil {
+			panic(err)
 		}
 	}
 }
