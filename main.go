@@ -116,6 +116,11 @@ func InitDB() {
 		return
 	}
 
+	fill := os.Getenv("FILL")
+	if fill != "" || fill != "0" {
+		return
+	}
+
 	for i := 0; i < 10; i++ {
 		u := &UserDB{
 			Login:    "user_" + strconv.Itoa(i),
