@@ -118,7 +118,7 @@ func InitDB() {
 	// }
 
 	if err := DB.Model(&UserDB{}).First(nil).Where("login = ?", "user_1").Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if err != gorm.ErrRecordNotFound {
 			log.Println("Тестовые записи не добавлялись")
 			return
 		}
