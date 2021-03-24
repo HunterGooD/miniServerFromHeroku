@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Table agents</title>
+    <style>
+        table {
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid black;
+        }
+
+        .storage {
+            font-size: 1.7em;
+            font-weight: bold;
+            text-align: center;
+        }
+        .user {
+            padding: 20px;
+            margin: 10px 20px;
+            box-shadow:1px 0px 10px black;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .user-info {
+            padding: 10px 0;
+            font-size: 2em;
+            font-weight: bold;
+            font-style: italic;
+        }
+        .storage-table {
+            margin: 20px 0 ;
+        }
+        .red {
+            color: red;
+            font-weight: bold;
+        }
+        #fixed {
+            position: fixed;
+            top: 0;
+            left: 0;
+            box-shadow: 1px 2px 5px black;
+            background: white;
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div id="fixed">
+            Показать
+            <select name="filtr" id="filtr" v-model="view">
+                <option value="all">Всех</option>
+                <option value="onlyLoaded">только с отправленными</option>
+                <option value="dontLoad">не отправленные</option>
+            </select>
+        </div>
+        <div v-for="agent in Agents" :key="agent.ID" class="user">
+            <div class="user-info">
+                Name: {{ agent.Login }}
+            </div>
+            <table v-for="storage in agent.Storages" :key="storage.ID" class="storage-table">
+                <tr>
+                    <td colspan="4" class="storage">
+                        Склад {{ storage.NameStorage }} на {{ storage.Address }}
+                    </td>
+                </tr>
+                <tr>
+                    <th colspan="2">Наименование Авто</th>
+                    <th colspan="2">Отправленно</th>
+                </tr>
+                <tr v-for="auto in storage.Autos" :key="auto.ID">
+                    <td colspan="3">{{ auto.NameAuto }}</td>
+                    <td colspan="1" :class="{red:auto.Photos.length == 0}">{{ auto.Photos.length == 0 ? "НЕТ" : "ДА" }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <script>
+        let app = new Vue({
+            el: "#app",
+            data: {
+                view: "all",
+                agents: [{
+                    ID: 0,
+                    Login: "asd",
+                    Storages: [{
+                        ID: 0,
+                        NameStorage: "",
+                        Address: "",
+                        Autos: [{
+                            NameAuto: "",
+                            Photos: [],
+                        }]
+                    }]
+                }]
+            },
+            computed: {
+                Agents() {
+                    let v = this;
+                    return v.agents.filter(
+                        (agent) => {
+                            let ret = true;
+                            switch (v.view) {
+                                case "all":
+                                    ret = true;
+                                    break
+                                case "onlyLoaded":
+                                    let newStorages = agent.Storages.filter(
+                                        (s) => {
+                                            let a = s.Autos.filter(
+                                                (a) => {
+                                                    return a.Photos.length == 0 ? false : true
+                                                }
+                                            );
+                                            return a.length == 0 ? false : true
+                                        }
+                                    );
+                                    ret =  newStorages.length == 0 ? false : true;
+                                    break;
+                                case "dontLoad":
+                                    let newStorages1 = agent.Storages.filter(
+                                        (s) => {
+                                            let a = s.Autos.filter(
+                                                (a) => {
+                                                    return a.Photos.length == 0 ? true : false;
+                                                }
+                                            );
+                                            return a.length == 0 ? true : false;
+                                        }
+                                    );
+                                    ret = newStorages1 == 0 ? true : false;
+                                    break;
+                            }
+                            return ret;
+                        }
+                    );
+                },
+            },
+            methods: {
+                loadAgents() {
+                    let v = this;
+                    let xhr = new XMLHttpRequest();
+                    xhr.onload = function () {
+                        var res = JSON.parse(xhr.response);
+                        v.agents = res
+                    };
+                    xhr.open('GET', "/agents", true);
+                    xhr.send();
+                }
+            },
+            mounted() {
+                this.loadAgents()
+            }
+        });
+    </script>
+</body>
+
+</html>
