@@ -117,7 +117,8 @@ func InitDB() {
 	}
 
 	fill := os.Getenv("FILL")
-	if fill != "" || fill != "0" {
+	if fill != "" {
+		log.Println("Тестовые записи не добавлялись")
 		return
 	}
 
