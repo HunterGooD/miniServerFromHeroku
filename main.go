@@ -28,7 +28,7 @@ var (
 // UserDB Таблица пользователей в БД
 type UserDB struct {
 	gorm.Model
-	Login    string      `gorm:"size:30"`
+	Login    string      `gorm:"size:30;unique"`
 	Password string      `gorm:"size:60"`
 	Token    string      `gorm:"size:64;index"`
 	Storages []StorageDB `gorm:"foreignKey:UserID"`
@@ -112,10 +112,16 @@ func InitDB() {
 
 	DB.AutoMigrate(&UserDB{}, &StorageDB{}, &AutoDB{}, &PhotoDB{})
 
-	fill := os.Getenv("FILL")
-	if fill != "" {
-		log.Println("Тестовые записи не добавлялись")
-		return
+	// для sqlite
+	// if _, err := os.Stat("forocontroll.db"); os.IsExist(err) {
+	// 	return
+	// }
+
+	if err := DB.Model(&UserDB{}).First(nil).Where("login = ?", "user_1").Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			log.Println("Тестовые записи не добавлялись")
+			return
+		}
 	}
 
 	for i := 0; i < 10; i++ {
