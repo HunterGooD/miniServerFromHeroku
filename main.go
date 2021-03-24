@@ -164,6 +164,9 @@ func InitDB() {
 }
 
 func main() {
+
+	rand.Seed(time.Now().Unix())
+
 	InitDB()
 
 	router := gin.Default()
