@@ -112,10 +112,6 @@ func InitDB() {
 
 	DB.AutoMigrate(&UserDB{}, &StorageDB{}, &AutoDB{}, &PhotoDB{})
 
-	if _, err := os.Stat("forocontroll.db"); os.IsExist(err) {
-		return
-	}
-
 	fill := os.Getenv("FILL")
 	if fill != "" {
 		log.Println("Тестовые записи не добавлялись")
