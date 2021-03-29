@@ -43,7 +43,7 @@ type PhotoDB struct {
 
 // User Таблица пользователей в БД
 type User struct {
-	ID       int64
+	ID       uint
 	FIO      string
 	Login    string
 	Storages []Storage
