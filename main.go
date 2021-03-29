@@ -139,6 +139,7 @@ func main() {
 	rand.Seed(time.Now().Unix())
 
 	InitDB()
+	InitDriveAPI()
 
 	router := gin.Default()
 
