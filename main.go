@@ -180,7 +180,7 @@ func getStorageByID(c *gin.Context) {
 func getStoragesInfo(c *gin.Context) {
 	c.Header("Content-Type", "application/json")
 
-	res := make([]User, 0)
+	res := make([]map[string]interface{}, 0)
 	rows, err := DB.Debug().Model(&UserDB{}).Rows()
 	if err != nil {
 		c.JSON(http.StatusOK, map[string]interface{}{
@@ -193,7 +193,7 @@ func getStoragesInfo(c *gin.Context) {
 	for rows.Next() {
 		var a UserDB
 		DB.ScanRows(rows, &a)
-		var addAgent User
+		var addAgent map[string]interface{}
 		DB.Debug().Model(&UserDB{}).Where("id = ?", a.ID).Preload("Storages").First(&addAgent)
 		res = append(res, addAgent)
 	}
