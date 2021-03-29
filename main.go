@@ -139,7 +139,6 @@ func main() {
 	rand.Seed(time.Now().Unix())
 
 	InitDB()
-	InitDriveAPI()
 
 	router := gin.Default()
 
@@ -147,6 +146,7 @@ func main() {
 	router.Any("/api/upload", uploadPhoto) // загрузка фото
 	router.POST("/api/signin", signIn)     // авторизация в системе
 	router.GET("/photo/:hash", showPhoto)  // получение фотографий
+	router.GET("/photos", showPhotos)      // получение фотографий
 	// router.GET("/api/storages", getStoragesInfo)     // показывает все склады
 	// router.GET("/api/storage/:id", getStorageByID)   // показывает объекты склада с его фотографиями
 	router.GET("/api/getStorages", getStoragesAgent) // показывает все склады агента
@@ -179,6 +179,17 @@ func main() {
 // func getStoragesInfo(c *gin.Context) {
 
 // }
+
+func showPhotos(c *gin.Context) {
+	c.Header("Content-Type", "application/json")
+	res := make([]string, len(photos))
+	var index int
+	for i := range photos {
+		res[index] = i
+		index++
+	}
+	c.JSON(http.StatusOK, res)
+}
 
 func getAllInfo(c *gin.Context) {
 	c.Header("Content-Type", "application/json")
@@ -340,9 +351,12 @@ func uploadPhoto(c *gin.Context) {
 		})
 		return
 	}
-	id := UploadPhoto(buffer)
+	hash := createHash([]byte(strconv.Itoa(rand.Int())))
+
 	agent.Storages[idS].Autos[idA].Photos = append(agent.Storages[idS].Autos[idA].Photos, PhotoDB{
-		Path: id,
+		Path:      hash,
+		Longitude: longitude,
+		Latitude:  latitude,
 	})
 
 	if err := DB.Save(agent).Error; err != nil {
@@ -353,7 +367,8 @@ func uploadPhoto(c *gin.Context) {
 		return
 	}
 
-	url = "/photo/" + id
+	photos[hash] = buffer
+	url = "/photo/" + hash
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"response": map[string]string{
 			"status":       "ok",
@@ -367,8 +382,8 @@ func uploadPhoto(c *gin.Context) {
 
 func showPhoto(c *gin.Context) {
 	hash := c.Param("hash")
-	if image := GetImage(hash); image != nil {
-		c.DataFromReader(http.StatusOK, int64(len(image)), "image/png", bytes.NewReader(image), nil)
+	if photo, ok := photos[hash]; ok {
+		c.DataFromReader(http.StatusOK, int64(len(photo)), "image/png", bytes.NewReader(photo), nil)
 	} else {
 		c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"error": "photos not exist",
