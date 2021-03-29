@@ -26,7 +26,7 @@ func getClient(config *oauth2.Config) *http.Client {
 	// time.
 	var tok *oauth2.Token
 	tokFile := "token.json"
-	if _, err := os.Stat(tokFile); os.IsExist(err) {
+	if _, err := os.Stat(tokFile); !os.IsNotExist(err) {
 		tok, err := tokenFromFile(tokFile)
 		if err != nil {
 			tok = getTokenFromWeb(config)
@@ -92,7 +92,7 @@ func InitDriveAPI() {
 		b   []byte
 		err error
 	)
-	if _, err := os.Stat("credentials.json"); os.IsExist(err) {
+	if _, err := os.Stat("credentials.json"); !os.IsNotExist(err) {
 		b, err = ioutil.ReadFile("credentials.json")
 		if err != nil {
 			log.Fatalf("Unable to read client secret file: %v", err)
