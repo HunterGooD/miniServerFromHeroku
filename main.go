@@ -194,7 +194,7 @@ func getStoragesInfo(c *gin.Context) {
 		var a UserDB
 		DB.ScanRows(rows, &a)
 		var addAgent User
-		DB.Debug().Model(&UserDB{}).Where("id = ?", a.ID).Preload(clause.Associations).First(&addAgent)
+		DB.Debug().Model(&UserDB{}).Where("id = ?", a.ID).Preload("Storages").First(&addAgent)
 		res = append(res, addAgent)
 	}
 	c.JSON(http.StatusOK, res)
