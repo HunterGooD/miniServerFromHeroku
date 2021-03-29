@@ -41,6 +41,14 @@ type PhotoDB struct {
 	Latitude  string
 }
 
+// User Таблица пользователей в БД
+type User struct {
+	ID       int
+	FIO      string
+	Login    string
+	Storages []Storage
+}
+
 //Storage  /
 type Storage struct {
 	NameStorage string

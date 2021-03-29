@@ -143,12 +143,12 @@ func main() {
 	router := gin.Default()
 
 	router.Static("/assets", "assets")
-	router.Any("/api/upload", uploadPhoto) // загрузка фото
-	router.POST("/api/signin", signIn)     // авторизация в системе
-	router.GET("/photo/:hash", showPhoto)  // получение фотографий
-	router.GET("/photos", showPhotos)      // получение фотографий
-	// router.GET("/api/storages", getStoragesInfo)     // показывает все склады
-	// router.GET("/api/storage/:id", getStorageByID)   // показывает объекты склада с его фотографиями
+	router.Any("/api/upload", uploadPhoto)           // загрузка фото
+	router.POST("/api/signin", signIn)               // авторизация в системе
+	router.GET("/photo/:hash", showPhoto)            // получение фотографийd
+	router.GET("/photos", showPhotos)                // получение фотографий
+	router.GET("/api/storages", getStoragesInfo)     // показывает все склады
+	router.GET("/api/storage/:id", getStorageByID)   // показывает объекты склада с его фотографиями
 	router.GET("/api/getStorages", getStoragesAgent) // показывает все склады агента
 	router.GET("/", func(c *gin.Context) {
 		c.File("index.html")
@@ -170,15 +170,35 @@ func main() {
 	router.Run(":" + port)
 }
 
-// func getStorageByID(c *gin.Context) {
-// 	id := c.Param("id")
+func getStorageByID(c *gin.Context) {
+	c.Header("Content-Type", "application/json")
+	// id := c.Param("id")
 
-// 	DB.Model(&StorageDB{}).Where("id = ?", id).First()
-// }
+	// DB.Model(&StorageDB{}).Where("id = ?", id).First()
+}
 
-// func getStoragesInfo(c *gin.Context) {
+func getStoragesInfo(c *gin.Context) {
+	c.Header("Content-Type", "application/json")
 
-// }
+	res := make([]User, 0)
+	rows, err := DB.Debug().Model(&UserDB{}).Rows()
+	if err != nil {
+		c.JSON(http.StatusOK, map[string]interface{}{
+			"error": "Ошибка получения записей",
+		})
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var a UserDB
+		DB.ScanRows(rows, &a)
+		var addAgent User
+		DB.Debug().Model(&UserDB{}).Where("id = ?", a.ID).Preload(clause.Associations).First(&addAgent)
+		res = append(res, addAgent)
+	}
+	c.JSON(http.StatusOK, res)
+}
 
 func showPhotos(c *gin.Context) {
 	c.Header("Content-Type", "application/json")
