@@ -25,39 +25,6 @@ var (
 	DB *gorm.DB
 )
 
-// UserDB Таблица пользователей в БД
-type UserDB struct {
-	gorm.Model
-	Login    string      `gorm:"size:30;unique"`
-	Password string      `gorm:"size:60"`
-	Token    string      `gorm:"size:64;index"`
-	Storages []StorageDB `gorm:"foreignKey:UserID"`
-}
-
-//StorageDB  Таблица хранилищпользователя в БД
-type StorageDB struct {
-	gorm.Model
-	NameStorage string   `gorm:"size:60"`
-	Address     string   `gorm:"text"`
-	Autos       []AutoDB `gorm:"foreignKey:StorageID"`
-	UserID      int
-}
-
-// AutoDB Таблица автомобилей в хранилище
-type AutoDB struct {
-	gorm.Model
-	NameAuto  string    `gorm:"size:50`
-	Photos    []PhotoDB `gorm:"many2many:auto_photos"`
-	StorageID int
-}
-
-// PhotoDB Фотографии автомобилей
-type PhotoDB struct {
-	gorm.Model
-	Path string `gorm:"size:128`
-	Date time.Time
-}
-
 // InitDB инициализация ДБ
 func InitDB() {
 
@@ -175,10 +142,12 @@ func main() {
 
 	router := gin.Default()
 
-	router.Any("/api/upload", uploadPhoto)           // загрузка фото
-	router.POST("/api/signin", signIn)               // авторизация в системе
-	router.GET("/photo/:hash", showPhoto)            // получение фотографий
-	router.GET("/agents", getAgentsInfo)             // показывает всех агентов
+	router.Static("/assets", "assets")
+	router.Any("/api/upload", uploadPhoto) // загрузка фото
+	router.POST("/api/signin", signIn)     // авторизация в системе
+	router.GET("/photo/:hash", showPhoto)  // получение фотографий
+	// router.GET("/api/storages", getStoragesInfo)     // показывает все склады
+	// router.GET("/api/storage/:id", getStorageByID)   // показывает объекты склада с его фотографиями
 	router.GET("/api/getStorages", getStoragesAgent) // показывает все склады агента
 	router.GET("/", func(c *gin.Context) {
 		c.File("index.html")
@@ -200,7 +169,17 @@ func main() {
 	router.Run(":" + port)
 }
 
-func getAgentsInfo(c *gin.Context) {
+// func getStorageByID(c *gin.Context) {
+// 	id := c.Param("id")
+
+// 	DB.Model(&StorageDB{}).Where("id = ?", id).First()
+// }
+
+// func getStoragesInfo(c *gin.Context) {
+
+// }
+
+func getAllInfo(c *gin.Context) {
 	c.Header("Content-Type", "application/json")
 	res := make([]UserDB, 0)
 	rows, err := DB.Debug().Model(&UserDB{}).Rows()
@@ -342,17 +321,6 @@ func uploadPhoto(c *gin.Context) {
 	}
 	var idS = rand.Intn(2)
 	var idA = rand.Intn(2)
-	agent.Storages[idS].Autos[idA].Photos = append(agent.Storages[idS].Autos[idA].Photos, PhotoDB{
-		Path: "test ХОСТИНГ не загружает фотки поэтому просто пустышка",
-	})
-
-	if err := DB.Save(agent).Error; err != nil {
-		log.Println(err)
-		c.JSON(http.StatusOK, map[string]string{
-			"error": "Ошибка добавления в базу",
-		})
-		return
-	}
 
 	// TODO: загружать картинки в папку photos/ с уникальным именем. и записывать в базу
 	photo, photoHeader, err := c.Request.FormFile("photo")
@@ -371,12 +339,20 @@ func uploadPhoto(c *gin.Context) {
 		})
 		return
 	}
+	id := UploadPhoto(buffer)
+	agent.Storages[idS].Autos[idA].Photos = append(agent.Storages[idS].Autos[idA].Photos, PhotoDB{
+		Path: id,
+	})
 
-	hash := createHash([]byte(strconv.Itoa(rand.Int())))
-	go deletePhoto(hash)
+	if err := DB.Save(agent).Error; err != nil {
+		log.Println(err)
+		c.JSON(http.StatusOK, map[string]string{
+			"error": "Ошибка добавления в базу",
+		})
+		return
+	}
 
-	photos[hash] = buffer
-	url = "/photo/" + hash
+	url = "/photo/" + id
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"response": map[string]string{
 			"status":       "ok",
@@ -390,8 +366,8 @@ func uploadPhoto(c *gin.Context) {
 
 func showPhoto(c *gin.Context) {
 	hash := c.Param("hash")
-	if photo, ok := photos[hash]; ok {
-		c.DataFromReader(http.StatusOK, int64(len(photo)), "image/png", bytes.NewReader(photo), nil)
+	if image := GetImage(hash); image != nil {
+		c.DataFromReader(http.StatusOK, int64(len(image)), "image/png", bytes.NewReader(image), nil)
 	} else {
 		c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"error": "photos not exist",

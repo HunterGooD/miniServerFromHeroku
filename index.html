@@ -1,167 +1,88 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 
 <head>
     <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Table agents</title>
-    <style>
-        table {
-            border-collapse: collapse;
-        }
-
-        th,
-        td {
-            border: 1px solid black;
-        }
-
-        .storage {
-            font-size: 1.7em;
-            font-weight: bold;
-            text-align: center;
-        }
-        .user {
-            padding: 20px;
-            margin: 10px 20px;
-            box-shadow:1px 0px 10px black;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .user-info {
-            padding: 10px 0;
-            font-size: 2em;
-            font-weight: bold;
-            font-style: italic;
-        }
-        .storage-table {
-            margin: 20px 0 ;
-        }
-        .red {
-            color: red;
-            font-weight: bold;
-        }
-        #fixed {
-            position: fixed;
-            top: 0;
-            left: 0;
-            box-shadow: 1px 2px 5px black;
-            background: white;
-            padding: 10px;
-        }
-    </style>
 </head>
 
 <body>
     <div id="app">
-        <div id="fixed">
-            Показать
-            <select name="filtr" id="filtr" v-model="view">
-                <option value="all">Всех</option>
-                <option value="onlyLoaded">только с отправленными</option>
-                <option value="dontLoad">не отправленные</option>
-            </select>
-        </div>
-        <div v-for="agent in Agents" :key="agent.ID" class="user">
-            <div class="user-info">
-                Name: {{ agent.Login }}
-            </div>
-            <table v-for="storage in agent.Storages" :key="storage.ID" class="storage-table">
-                <tr>
-                    <td colspan="4" class="storage">
-                        Склад {{ storage.NameStorage }} на {{ storage.Address }}
-                    </td>
-                </tr>
-                <tr>
-                    <th colspan="2">Наименование Авто</th>
-                    <th colspan="2">Отправленно</th>
-                </tr>
-                <tr v-for="auto in storage.Autos" :key="auto.ID">
-                    <td colspan="3">{{ auto.NameAuto }}</td>
-                    <td colspan="1" :class="{red:auto.Photos.length == 0}">{{ auto.Photos.length == 0 ? "НЕТ" : "ДА" }}</td>
-                </tr>
-            </table>
-        </div>
+        <v-app id="inspire">
+            <v-dialog v-model="dialog" fullscreen hide-overlay transition="dialog-bottom-transition">
+                <v-card>
+                    <v-toolbar dark color="primary">
+                        <v-btn icon dark @click="dialog = false">
+                            <v-icon>mdi-close</v-icon>
+                        </v-btn>
+                        <v-toolbar-title>Просмотр</v-toolbar-title>
+                        <v-spacer></v-spacer>
+                    </v-toolbar>
+                    <v-list three-line subheader>
+                        <v-img src="https://cdn.vuetifyjs.com/images/cards/house.jpg" class="white--text align-end"
+                            gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)">
+
+                        </v-img>
+                </v-card>
+            </v-dialog>
+
+            <v-main class="grey lighten-3">
+                <v-container>
+                    <v-row>
+                        <v-col cols="2">
+                            <v-sheet rounded="lg">
+                                <v-list color="transparent">
+                                    <v-list-item v-for="n in 5" :key="n" link>
+                                        <v-list-item-content>
+                                            <v-list-item-title>
+                                                Склад {{ n }}
+                                            </v-list-item-title>
+                                            <v-list-item-content class="text--secondary text-caption">
+                                                Улица {{ n }}
+                                            </v-list-item-content>
+                                        </v-list-item-content>
+                                    </v-list-item>
+                                </v-list>
+                            </v-sheet>
+                        </v-col>
+
+                        <v-col>
+                            <v-sheet min-height="95vh" rounded="lg" style="padding: 1% 3%;">
+                                <v-select :items="items" label="Выберите объект"></v-select>
+                                <v-spacer></v-spacer>
+                                <v-expansion-panels>
+                                    <v-expansion-panel>
+                                        <v-expansion-panel-header>
+                                            27.01.1
+                                        </v-expansion-panel-header>
+                                        <v-expansion-panel-content>
+                                            <v-card>
+                                                <v-img src="https://cdn.vuetifyjs.com/images/cards/house.jpg"
+                                                    class="white--text align-end"
+                                                    gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)" height="400px">
+                                                    <v-card-title v-text="'agent'"></v-card-title>
+                                                </v-img>
+                                                <!-- <v-card-title class="title">
+                                                Агент
+                                            </v-card-title> -->
+                                            </v-card>
+                                        </v-expansion-panel-content>
+                                    </v-expansion-panel>
+                                </v-expansion-panels>
+                            </v-sheet>
+                        </v-col>
+                    </v-row>
+                </v-container>
+            </v-main>
+        </v-app>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
-    <script>
-        let app = new Vue({
-            el: "#app",
-            data: {
-                view: "all",
-                agents: [{
-                    ID: 0,
-                    Login: "asd",
-                    Storages: [{
-                        ID: 0,
-                        NameStorage: "",
-                        Address: "",
-                        Autos: [{
-                            NameAuto: "",
-                            Photos: [],
-                        }]
-                    }]
-                }]
-            },
-            computed: {
-                Agents() {
-                    let v = this;
-                    return v.agents.filter(
-                        (agent) => {
-                            let ret = true;
-                            switch (v.view) {
-                                case "all":
-                                    ret = true;
-                                    break
-                                case "onlyLoaded":
-                                    let newStorages = agent.Storages.filter(
-                                        (s) => {
-                                            let a = s.Autos.filter(
-                                                (a) => {
-                                                    return a.Photos.length == 0 ? false : true
-                                                }
-                                            );
-                                            return a.length == 0 ? false : true
-                                        }
-                                    );
-                                    ret =  newStorages.length == 0 ? false : true;
-                                    break;
-                                case "dontLoad":
-                                    let newStorages1 = agent.Storages.filter(
-                                        (s) => {
-                                            let a = s.Autos.filter(
-                                                (a) => {
-                                                    return a.Photos.length == 0 ? true : false;
-                                                }
-                                            );
-                                            return a.length == 0 ? true : false;
-                                        }
-                                    );
-                                    ret = newStorages1 == 0 ? true : false;
-                                    break;
-                            }
-                            return ret;
-                        }
-                    );
-                },
-            },
-            methods: {
-                loadAgents() {
-                    let v = this;
-                    let xhr = new XMLHttpRequest();
-                    xhr.onload = function () {
-                        var res = JSON.parse(xhr.response);
-                        v.agents = res
-                    };
-                    xhr.open('GET', "/agents", true);
-                    xhr.send();
-                }
-            },
-            mounted() {
-                this.loadAgents()
-            }
-        });
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+    <script src="/assets/script/script.js"></script>
 </body>
 
 </html>

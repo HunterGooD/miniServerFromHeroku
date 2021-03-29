@@ -116,9 +116,9 @@ func Open(dialector Dialector, opts ...Option) (db *DB, err error) {
 			if err := opt.Apply(config); err != nil {
 				return nil, err
 			}
-			defer func() {
+			defer func(opt Option) {
 				opt.AfterInitialize(db)
-			}()
+			}(opt)
 		}
 	}
 
@@ -331,8 +331,8 @@ func (db *DB) AddError(err error) error {
 func (db *DB) DB() (*sql.DB, error) {
 	connPool := db.ConnPool
 
-	if stmtDB, ok := connPool.(*PreparedStmtDB); ok {
-		connPool = stmtDB.ConnPool
+	if dbConnector, ok := connPool.(GetDBConnector); ok && dbConnector != nil {
+		return dbConnector.GetDBConn()
 	}
 
 	if sqldb, ok := connPool.(*sql.DB); ok {
