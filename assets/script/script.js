@@ -44,9 +44,8 @@ let app = new Vue({
         }
     },
     methods: {
-        showDialog(e) {
-            console.log(e.target);
-            this.dialog_img = e.target.src;
+        showDialog(url) {
+            this.dialog_img = url;
             this.dialog = true;
         },
         select(e) {
