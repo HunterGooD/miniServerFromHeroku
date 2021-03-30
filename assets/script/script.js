@@ -39,9 +39,6 @@ let app = new Vue({
         }]
     },
     computed: {
-        url(hash) {
-            return "https://defsgthjyhtgrkj.herokuapp.com/photo/" + hash;
-        }
     },
     methods: {
         showDialog(url) {
