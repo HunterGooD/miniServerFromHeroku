@@ -534,5 +534,6 @@ func signIn(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"token": token,
+		"fio":   udb.FIO,
 	})
 }
