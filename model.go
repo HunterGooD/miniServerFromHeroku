@@ -43,29 +43,28 @@ type PhotoDB struct {
 
 // User Таблица пользователей в БД
 type User struct {
-	ID       *uint64
-	FIO      string
-	Login    string
-	Storages []Storage
+	ID       uint      `json:"id"`
+	FIO      string    `json:"fio"`
+	Storages []Storage `json:"storages"`
 }
 
 //Storage  /
 type Storage struct {
-	NameStorage string
-	Address     string
-	Objects     []Object
+	NameStorage string   `json:"name_storage"`
+	Address     string   `json:"address"`
+	Objects     []Object `json:"objects"`
 }
 
 // Object /
 type Object struct {
-	NameAuto string
-	Photos   []PhotoDB
+	NameObject string    `json:"name_object"`
+	Photos     []PhotoDB `json:"photos"`
 }
 
 // Photo /
 type Photo struct {
-	CreatedAt time.Time
-	Longitude string
-	Latitude  string
-	Path      string
+	CreatedAt time.Time `json:"created_at"`
+	Longitude string    `json:"longitude"`
+	Latitude  string    `json:"latitude"`
+	Path      string    `json:"path"`
 }
