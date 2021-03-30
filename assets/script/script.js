@@ -2,80 +2,67 @@ let app = new Vue({
     el: "#app",
     vuetify: new Vuetify(),
     data: {
+        dialog_img: "",
         dialog: false,
-        items: ['Foo', 'Bar', 'Fizz', 'Buzz'],
-        links: [
-            '',
-            '',
-            '',
-            '',
-        ],
-        view: "all",
+        items: [],
+        active_storage: [{
+            name_object: "",
+            photos: [{
+                id: 0,
+                created_at:"",
+                longitude:"",
+                latitude:"",
+                path: "",
+            }],
+        }],
+        storages: [],
         agents: [{
-            ID: 0,
-            Login: "asd",
-            Storages: [{
-                ID: 0,
-                NameStorage: "",
+            id: 0,
+            fio: "asd",
+            storages: [{
+                id: 0,
+                name_storage: "",
                 Address: "",
-                Autos: [{
-                    NameAuto: "",
-                    Photos: [],
+                objects: [{
+                    name_object: "",
+                    photos: [{
+                        id: 0,
+                        created_at:"",
+                        longitude:"",
+                        latitude:"",
+                        path: "",
+                    }],
                 }]
             }]
         }]
     },
     computed: {
-        Agents() {
-            let v = this;
-            return v.agents.filter(
-                (agent) => {
-                    let ret = true;
-                    switch (v.view) {
-                        case "all":
-                            ret = true;
-                            break
-                        case "onlyLoaded":
-                            let newStorages = agent.Storages.filter(
-                                (s) => {
-                                    let a = s.Autos.filter(
-                                        (a) => {
-                                            return a.Photos.length == 0 ? false : true
-                                        }
-                                    );
-                                    return a.length == 0 ? false : true
-                                }
-                            );
-                            ret = newStorages.length == 0 ? false : true;
-                            break;
-                        case "dontLoad":
-                            let newStorages1 = agent.Storages.filter(
-                                (s) => {
-                                    let a = s.Autos.filter(
-                                        (a) => {
-                                            return a.Photos.length == 0 ? true : false;
-                                        }
-                                    );
-                                    return a.length == 0 ? true : false;
-                                }
-                            );
-                            ret = newStorages1 == 0 ? true : false;
-                            break;
-                    }
-                    return ret;
-                }
-            );
-        },
     },
     methods: {
+        openStorage(id) {
+            let v = this;
+            let xhr = new XMLHttpRequest();
+            xhr.onload = function () {
+                var res = JSON.parse(xhr.response);
+                v.active_storage = res;
+                res.forEach(e => {
+                    v.items.push(e.name_object)
+                });
+            };
+            xhr.open('GET', "/api/storage/"+id, true);
+            xhr.send();
+        },
         loadAgents() {
             let v = this;
             let xhr = new XMLHttpRequest();
             xhr.onload = function () {
                 var res = JSON.parse(xhr.response);
-                v.agents = res
+                v.agents = res;
+                v.agents.forEach(e=>{
+                    v.storages.push(...e.storages);
+                });
             };
-            xhr.open('GET', "/agents", true);
+            xhr.open('GET', "/api/storages", true);
             xhr.send();
         }
     },

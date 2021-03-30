@@ -23,7 +23,7 @@
                         <v-spacer></v-spacer>
                     </v-toolbar>
                     <v-list three-line subheader>
-                        <v-img src="https://cdn.vuetifyjs.com/images/cards/house.jpg" class="white--text align-end"
+                        <v-img :src="dialog_img" class="white--text align-end"
                             gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)">
 
                         </v-img>
@@ -36,13 +36,13 @@
                         <v-col cols="2">
                             <v-sheet rounded="lg">
                                 <v-list color="transparent">
-                                    <v-list-item v-for="n in 5" :key="n" link>
+                                    <v-list-item v-for="n in storages" :key="n.id" link @click="openStorage(n.id)">
                                         <v-list-item-content>
                                             <v-list-item-title>
-                                                Склад {{ n }}
+                                                Склад: {{ n.name_storage }}
                                             </v-list-item-title>
                                             <v-list-item-content class="text--secondary text-caption">
-                                                Улица {{ n }}
+                                                Улица: {{ n.Address }}
                                             </v-list-item-content>
                                         </v-list-item-content>
                                     </v-list-item>

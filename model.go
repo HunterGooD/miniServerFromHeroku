@@ -50,6 +50,7 @@ type User struct {
 
 //Storage  /
 type Storage struct {
+	ID          uint     `json:"id"`
 	NameStorage string   `json:"name_storage"`
 	Address     string   `json:"address"`
 	Objects     []Object `json:"objects"`
@@ -57,12 +58,14 @@ type Storage struct {
 
 // Object /
 type Object struct {
-	NameObject string    `json:"name_object"`
-	Photos     []PhotoDB `json:"photos"`
+	ID         uint    `json:"id"`
+	NameObject string  `json:"name_object"`
+	Photos     []Photo `json:"photos"`
 }
 
 // Photo /
 type Photo struct {
+	ID        uint      `json:"id"`
 	CreatedAt time.Time `json:"created_at"`
 	Longitude string    `json:"longitude"`
 	Latitude  string    `json:"latitude"`

@@ -97,7 +97,10 @@ func InitDB() {
 	for i := 0; i < 10; i++ {
 		var u UserDB
 		log.Println(i)
+		fio := make([]byte, 10)
+		rand.Read(fio)
 		u = UserDB{
+			FIO:      string(fio),
 			Login:    "user_" + strconv.Itoa(i),
 			Password: "pass_" + strconv.Itoa(i),
 			Storages: []StorageDB{
@@ -143,12 +146,13 @@ func main() {
 	router := gin.Default()
 
 	router.Static("/assets", "assets")
+
 	router.Any("/api/upload", uploadPhoto)           // загрузка фото
 	router.POST("/api/signin", signIn)               // авторизация в системе
 	router.GET("/photo/:hash", showPhoto)            // получение фотографийd
 	router.GET("/photos", showPhotos)                // получение фотографий
 	router.GET("/api/storages", getStoragesInfo)     // показывает все склады
-	router.GET("/api/allInfo", getAllInfo)           // показывает все склады
+	router.GET("/api/allInfo", getAllInfo)           // показывает всю информацию
 	router.GET("/api/storage/:id", getStorageByID)   // показывает объекты склада с его фотографиями
 	router.GET("/api/getStorages", getStoragesAgent) // показывает все склады агента
 	router.GET("/", func(c *gin.Context) {
@@ -173,9 +177,33 @@ func main() {
 
 func getStorageByID(c *gin.Context) {
 	c.Header("Content-Type", "application/json")
-	// id := c.Param("id")
-
-	// DB.Model(&StorageDB{}).Where("id = ?", id).First()
+	id := c.Param("id")
+	var storageDB StorageDB
+	if err := DB.Model(&StorageDB{}).Where("id = ?", id).Preload("Autos.Photos").First(&storageDB).Error; err != nil {
+		c.JSON(http.StatusOK, map[string]interface{}{
+			"error": "Ошибка получения записей",
+		})
+		return
+	}
+	obj := make([]Object, len(storageDB.Autos))
+	for i, o := range storageDB.Autos {
+		phs := make([]Photo, len(o.Photos))
+		for j, p := range o.Photos {
+			phs[j] = Photo{
+				ID:        p.ID,
+				Path:      p.Path,
+				Longitude: p.Longitude,
+				Latitude:  p.Latitude,
+				CreatedAt: p.CreatedAt,
+			}
+		}
+		obj[i] = Object{
+			ID:         o.ID,
+			NameObject: o.NameAuto,
+			Photos:     phs,
+		}
+	}
+	c.JSON(http.StatusOK, obj)
 }
 
 func getStoragesInfo(c *gin.Context) {
@@ -199,6 +227,7 @@ func getStoragesInfo(c *gin.Context) {
 		storages := make([]Storage, len(agent.Storages))
 		for i, s := range agent.Storages {
 			storages[i] = Storage{
+				ID:          s.ID,
 				NameStorage: s.NameStorage,
 				Address:     s.Address,
 			}
