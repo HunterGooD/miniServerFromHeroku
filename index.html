@@ -61,14 +61,13 @@
                                         </v-expansion-panel-header>
                                         <v-expansion-panel-content>
                                             <v-card>
-                                                <v-img :src="url(e.path)"
-                                                    class="white--text align-end"
+                                                <v-img :src="url(e.path)" class="white--text align-end"
                                                     gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)" height="400px">
-                                                    <v-card-title v-text="s"></v-card-title>
+                                                    <v-card-title :v-text="e.name_object"></v-card-title>
                                                 </v-img>
-                                                <!-- <v-card-title class="title">
-                                                Агент
-                                            </v-card-title> -->
+                                                <v-card-title class="title">
+                                                    {{ user }}
+                                                </v-card-title>
                                             </v-card>
                                         </v-expansion-panel-content>
                                     </v-expansion-panel>

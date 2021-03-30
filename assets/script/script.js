@@ -5,14 +5,15 @@ let app = new Vue({
         dialog_img: "https://picsum.photos/200/300",
         dialog: false,
         items: [],
+        user: "",
         active_photos: [],
         active_storage: [{
             name_object: "",
             photos: [{
                 id: 0,
-                created_at:"",
-                longitude:"",
-                latitude:"",
+                created_at: "",
+                longitude: "",
+                latitude: "",
                 path: "",
             }],
         }],
@@ -28,9 +29,9 @@ let app = new Vue({
                     name_object: "",
                     photos: [{
                         id: 0,
-                        created_at:"",
-                        longitude:"",
-                        latitude:"",
+                        created_at: "",
+                        longitude: "",
+                        latitude: "",
                         path: "",
                     }],
                 }]
@@ -39,13 +40,13 @@ let app = new Vue({
     },
     computed: {
         url(hash) {
-            return "https://defsgthjyhtgrkj.herokuapp.com/photo/"+hash; 
+            return "https://defsgthjyhtgrkj.herokuapp.com/photo/" + hash;
         }
     },
     methods: {
         select(e) {
             let v = this;
-            v.active_storage.forEach(async element=>{
+            v.active_storage.forEach(async element => {
                 if (element.name_object == e) {
                     v.active_photos = element.photos;
                 }
@@ -54,6 +55,20 @@ let app = new Vue({
         openStorage(id) {
             let v = this;
             let xhr = new XMLHttpRequest();
+            v.agents.forEach((e) => {
+                let uF = e.fio;
+                let f = false;
+                e.storages.forEach((el) => {
+                    if (el.id == id) {
+                        f = true;
+                        return;
+                    }
+                });
+                if (f) {
+                    v.user = uF;
+                    return;
+                }
+            });
             xhr.onload = function () {
                 var res = JSON.parse(xhr.response);
                 v.active_storage = res;
@@ -62,7 +77,7 @@ let app = new Vue({
                     v.items.push(e.name_object)
                 });
             };
-            xhr.open('GET', "/api/storage/"+id, true);
+            xhr.open('GET', "/api/storage/" + id, true);
             xhr.send();
         },
         loadAgents() {
@@ -71,7 +86,7 @@ let app = new Vue({
             xhr.onload = function () {
                 var res = JSON.parse(xhr.response);
                 v.agents = res;
-                v.agents.forEach(e=>{
+                v.agents.forEach(e => {
                     v.storages.push(...e.storages);
                 });
             };

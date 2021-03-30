@@ -376,21 +376,32 @@ func uploadPhoto(c *gin.Context) {
 
 	longitude := c.Request.FormValue("longitude")
 	latitude := c.Request.FormValue("latitude")
-	// id_auto := c.Request.FormValue("id_auto")
-	// id_storage := c.Request.FormValue("id_storage")
-
+	id_object, err := strconv.Atoi(c.Request.FormValue("object_id"))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "Ошибка при опозновании склада",
+		})
+		return
+	}
+	id_storage, err := strconv.Atoi(c.Request.FormValue("storage_id"))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "Ошибка при опозновании склада",
+		})
+		return
+	}
 	if longitude == "" {
 		c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "Пустое значение longitude",
 		})
+		return
 	}
 	if latitude == "" {
 		c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "Пустое значение latitude",
 		})
+		return
 	}
-	var idS = rand.Intn(2)
-	var idA = rand.Intn(2)
 
 	// TODO: загружать картинки в папку photos/ с уникальным именем. и записывать в базу
 	photo, photoHeader, err := c.Request.FormFile("photo")
@@ -410,12 +421,21 @@ func uploadPhoto(c *gin.Context) {
 		return
 	}
 	hash := createHash([]byte(strconv.Itoa(rand.Int())))
-
-	agent.Storages[idS].Autos[idA].Photos = append(agent.Storages[idS].Autos[idA].Photos, PhotoDB{
-		Path:      hash,
-		Longitude: longitude,
-		Latitude:  latitude,
-	})
+	for i, s := range agent.Storages {
+		if int(s.ID) == id_storage {
+			for j, o := range s.Autos {
+				if int(o.ID) == id_object {
+					agent.Storages[i].Autos[j].Photos = append(agent.Storages[i].Autos[j].Photos, PhotoDB{
+						Path:      hash,
+						Longitude: longitude,
+						Latitude:  latitude,
+					})
+					break
+				}
+			}
+			break
+		}
+	}
 
 	if err := DB.Save(agent).Error; err != nil {
 		log.Println(err)
