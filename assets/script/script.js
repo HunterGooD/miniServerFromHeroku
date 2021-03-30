@@ -44,6 +44,10 @@ let app = new Vue({
         }
     },
     methods: {
+        showDialog(e) {
+            console.log(e);
+            this.dialog = true;
+        },
         select(e) {
             let v = this;
             v.active_storage.forEach(async element => {

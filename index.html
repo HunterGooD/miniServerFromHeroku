@@ -62,12 +62,15 @@
                                         <v-expansion-panel-content>
                                             <v-card>
                                                 <v-img :src="'https://defsgthjyhtgrkj.herokuapp.com/photo/'+e.path" class="white--text align-end"
-                                                    gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)" height="400px">
-                                                    <v-card-title :v-text="e.name_object"></v-card-title>
+                                                    gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)" height="400px" @click="showDialog">
+                                                    <!-- <v-card-title :v-text=""></v-card-title> -->
                                                 </v-img>
                                                 <v-card-title class="title">
                                                     {{ user }}
                                                 </v-card-title>
+                                                <v-card-subtitle>
+                                                    {{ e.name_object }}
+                                                </v-card-subtitle>
                                             </v-card>
                                         </v-expansion-panel-content>
                                     </v-expansion-panel>
