@@ -5,6 +5,7 @@ let app = new Vue({
         dialog_img: "https://picsum.photos/200/300",
         dialog: false,
         items: [],
+        active_photos: [],
         active_storage: [{
             name_object: "",
             photos: [{
@@ -37,10 +38,18 @@ let app = new Vue({
         }]
     },
     computed: {
+        url(hash) {
+            return "https://defsgthjyhtgrkj.herokuapp.com/photo/"+hash; 
+        }
     },
     methods: {
         select(e) {
-            console.log(e)
+            let v = this;
+            v.active_storage.forEach(async element=>{
+                if (element.name_object == e) {
+                    v.active_photos = element.photos;
+                }
+            });
         },
         openStorage(id) {
             let v = this;

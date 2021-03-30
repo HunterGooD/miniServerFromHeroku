@@ -55,13 +55,13 @@
                                 <v-select :items="items" label="Выберите объект" @change="select"></v-select>
                                 <v-spacer></v-spacer>
                                 <v-expansion-panels>
-                                    <v-expansion-panel>
+                                    <v-expansion-panel v-for="e in active_photos" :key="e.id">
                                         <v-expansion-panel-header>
-                                            27.01.1
+                                            {{ e.created_at }}
                                         </v-expansion-panel-header>
                                         <v-expansion-panel-content>
                                             <v-card>
-                                                <v-img src="https://cdn.vuetifyjs.com/images/cards/house.jpg"
+                                                <v-img :src="url(e.path)"
                                                     class="white--text align-end"
                                                     gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)" height="400px">
                                                     <v-card-title v-text="'agent'"></v-card-title>
