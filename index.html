@@ -57,7 +57,7 @@
                                 <v-expansion-panels>
                                     <v-expansion-panel v-for="e in active_photos" :key="e.id">
                                         <v-expansion-panel-header>
-                                            {{ Date(e.created_at).toISOString().slice(0,10) }}
+                                            {{ new Date(e.created_at).toISOString().slice(0,10) }}
                                         </v-expansion-panel-header>
                                         <v-expansion-panel-content>
                                             <v-card>
