@@ -117,7 +117,7 @@ func InitDB() {
 					},
 				},
 				StorageDB{
-					NameStorage: "Storage_" + strconv.Itoa(i),
+					NameStorage: "Storage_" + strconv.Itoa(i) + "." + strconv.Itoa(i+1),
 					Address:     "city,street,domik_1." + strconv.Itoa(i),
 					Autos: []AutoDB{
 						AutoDB{

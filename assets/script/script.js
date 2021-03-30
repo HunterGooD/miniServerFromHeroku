@@ -2,7 +2,7 @@ let app = new Vue({
     el: "#app",
     vuetify: new Vuetify(),
     data: {
-        dialog_img: "",
+        dialog_img: "https://picsum.photos/200/300",
         dialog: false,
         items: [],
         active_storage: [{
@@ -45,6 +45,7 @@ let app = new Vue({
             xhr.onload = function () {
                 var res = JSON.parse(xhr.response);
                 v.active_storage = res;
+                v.items = [];
                 res.forEach(e => {
                     v.items.push(e.name_object)
                 });
