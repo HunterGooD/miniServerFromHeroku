@@ -39,6 +39,9 @@ let app = new Vue({
     computed: {
     },
     methods: {
+        select(e) {
+            console.log(e)
+        },
         openStorage(id) {
             let v = this;
             let xhr = new XMLHttpRequest();

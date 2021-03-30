@@ -52,7 +52,7 @@
 
                         <v-col>
                             <v-sheet min-height="95vh" rounded="lg" style="padding: 1% 3%;">
-                                <v-select :items="items" label="Выберите объект"></v-select>
+                                <v-select :items="items" label="Выберите объект" @change="select"></v-select>
                                 <v-spacer></v-spacer>
                                 <v-expansion-panels>
                                     <v-expansion-panel>
