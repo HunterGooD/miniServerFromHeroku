@@ -148,6 +148,7 @@ func main() {
 	router.GET("/photo/:hash", showPhoto)            // получение фотографийd
 	router.GET("/photos", showPhotos)                // получение фотографий
 	router.GET("/api/storages", getStoragesInfo)     // показывает все склады
+	router.GET("/api/allInfo", getAllInfo)           // показывает все склады
 	router.GET("/api/storage/:id", getStorageByID)   // показывает объекты склада с его фотографиями
 	router.GET("/api/getStorages", getStoragesAgent) // показывает все склады агента
 	router.GET("/", func(c *gin.Context) {
