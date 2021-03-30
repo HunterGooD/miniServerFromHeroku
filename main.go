@@ -96,11 +96,8 @@ func InitDB() {
 
 	for i := 0; i < 10; i++ {
 		var u UserDB
-		log.Println(i)
-		fio := make([]byte, 10)
-		rand.Read(fio)
 		u = UserDB{
-			FIO:      string(fio),
+			FIO:      "FIO_user_" + strconv.Itoa(i),
 			Login:    "user_" + strconv.Itoa(i),
 			Password: "pass_" + strconv.Itoa(i),
 			Storages: []StorageDB{
