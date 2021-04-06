@@ -5,6 +5,7 @@ go 1.14
 
 require (
 	github.com/gin-gonic/gin v1.6.3
+	github.com/gobuffalo/packr/v2 v2.8.1
 	github.com/golang/protobuf v1.5.1 // indirect
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/stretchr/testify v1.6.1 // indirect
