@@ -149,7 +149,7 @@ export default {
       }`;
     },
     showDialog(url) {
-      this.dialog_img = url;
+      this.dialog_img = this.getURL(url);
       this.dialog = true;
     },
     select(e) {

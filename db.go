@@ -105,4 +105,10 @@ func (a *App) InitDB() {
 			panic(err)
 		}
 	}
+	u := new(UserDB)
+	s := new(StorageDB)
+	a.DB.Model(&UserDB{}).Where("id = 1").First(u)
+	a.DB.Model(&StorageDB{}).Where("id = 3").First(s)
+	u.Storages = append(u.Storages, *s)
+	a.DB.Save(u)
 }
