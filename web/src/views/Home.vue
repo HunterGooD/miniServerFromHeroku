@@ -94,7 +94,7 @@ export default {
   data: () => ({
     dialog_img: "https://picsum.photos/200/300",
     dialog: false,
-    url: "api",
+    url: "/api",
     items: [],
     user: "",
     active_photos: [
@@ -192,7 +192,7 @@ export default {
           v.items.push(e.name_object);
         });
       };
-      xhr.open("GET", `${v.$router.app.baseURL}/${v.url}/storage/${id}`, true);
+      xhr.open("GET", `${v.url}/storage/${id}`, true);
       xhr.send();
     },
     loadAgents() {
@@ -205,7 +205,7 @@ export default {
           v.storages.push(...e.storages);
         });
       };
-      xhr.open("GET", `${v.$router.app.baseURL}/${v.url}/storages`, true);
+      xhr.open("GET", `${v.url}/storages`, true);
       xhr.send();
     },
   },
