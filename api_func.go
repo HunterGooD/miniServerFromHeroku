@@ -27,6 +27,7 @@ func (a *App) getStorageByID(c *gin.Context) {
 		})
 		return
 	}
+
 	obj := make([]Object, len(storageDB.Objects))
 	for i, o := range storageDB.Objects {
 		phs := make([]Photo, len(o.Photos))

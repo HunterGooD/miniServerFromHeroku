@@ -14,19 +14,6 @@ import (
 // InitDB инициализация ДБ
 func (a *App) InitDB() {
 
-	// var dsn = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
-	// 	"root",
-	// 	"gfhjkm",
-	// 	"localhost",
-	// 	"3306",
-	// 	"fotocontroll",
-	// )
-	// if db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{}); err != nil {
-	// 	panic(err)
-	// } else {
-	// 	a.DB = db
-	// }
-
 	// if db, err := gorm.Open(sqlite.Open("fotocontroll.db"), &gorm.Config{}); err != nil {
 	// 	panic(err)
 	// } else {
