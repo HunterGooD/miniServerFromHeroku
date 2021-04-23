@@ -150,7 +150,7 @@ func (a *App) getStoragesAgent(c *gin.Context) {
 		return
 	}
 	u := new(UserDB)
-	// TODO: передалть на Preload
+
 	err := a.DB.Debug().Model(&UserDB{}).Where("user_dbs.token = ?", userToken).Preload("Storages.Objects").First(u).Error
 
 	if err != nil {
@@ -166,11 +166,11 @@ func (a *App) getStoragesAgent(c *gin.Context) {
 	for _, storage := range u.Storages {
 		stor := new(StorageS)
 		autos := make([]AutoS, len(storage.Objects))
-		for _, a := range storage.Objects {
-			autos = append(autos, AutoS{
+		for i, a := range storage.Objects {
+			autos[i] = AutoS{
 				ID:       int(a.ID),
 				NameAuto: a.NameObject,
-			})
+			}
 		}
 		stor = &StorageS{
 			ID:          int(storage.ID),
