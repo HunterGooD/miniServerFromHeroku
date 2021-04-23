@@ -46,7 +46,7 @@ func main() {
 
 	router.Any("/api/upload", app.uploadPhoto)           // загрузка фото
 	router.POST("/api/signin", app.signIn)               // авторизация в системе
-	router.GET("/photo/:hash", app.showPhoto)            // получение фотографийd
+	router.GET(webAppURL+"/photo/:hash", app.showPhoto)  // получение фотографийd
 	router.GET("/photos", app.showPhotos)                // получение фотографий
 	router.GET("/api/storages", app.getStoragesInfo)     // показывает все склады
 	router.GET("/api/allInfo", app.getAllInfo)           // показывает всю информацию

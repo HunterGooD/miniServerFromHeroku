@@ -64,7 +64,7 @@
               <v-col v-for="e in active_photos" :key="e.id">
                 <v-card elevation="8">
                   <v-img
-                    :src="e.path"
+                    :src="getUrl(e.path)"
                     aspect-ratio="16/9"
                     height="400px"
                     contain
@@ -151,7 +151,7 @@ export default {
   computed: {},
   methods: {
     getURL(url) {
-      return `${this.$router.app.baseURL}/${
+      return `${this.$router.app.baseURL}/photo/${
         url[0] === "/" ? url.replace("/", "") : url
       }`;
     },
