@@ -256,6 +256,7 @@ func (a *App) uploadPhoto(c *gin.Context) {
 						Path:      hash,
 						Longitude: longitude,
 						Latitude:  latitude,
+						UserID:    int(agent.ID),
 					})
 					break
 				}

@@ -14,7 +14,7 @@ type UserDB struct {
 	Password string      `gorm:"size:60"`
 	Token    string      `gorm:"size:64;index"`
 	Storages []StorageDB `gorm:"many2many:user_from_storage"`
-	Photo    PhotoDB     `gorm:"foreignKey:UserID"`
+	Photo    []PhotoDB   `gorm:"foreignKey:UserID"`
 }
 
 //StorageDB  Таблица хранилищпользователя в БД
