@@ -47,7 +47,7 @@ type PhotoDB struct {
 type User struct {
 	ID       uint      `json:"id"`
 	FIO      string    `json:"fio"`
-	Storages []Storage `json:"storages"`
+	Storages []Storage `json:"storages,omitempty"`
 }
 
 //Storage  /
@@ -72,4 +72,5 @@ type Photo struct {
 	Longitude string    `json:"longitude"`
 	Latitude  string    `json:"latitude"`
 	Path      string    `json:"path"`
+	User      User      `json:"user"`
 }

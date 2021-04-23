@@ -31,12 +31,17 @@ func (a *App) getStorageByID(c *gin.Context) {
 	for i, o := range storageDB.Objects {
 		phs := make([]Photo, len(o.Photos))
 		for j, p := range o.Photos {
+			u := new(UserDB)
+			a.DB.Model(UserDB{}).Where("id = ?", p.UserID).First(u)
 			phs[j] = Photo{
 				ID:        p.ID,
 				Path:      p.Path,
 				Longitude: p.Longitude,
 				Latitude:  p.Latitude,
 				CreatedAt: p.CreatedAt,
+				User: User{
+					FIO: u.FIO,
+				},
 			}
 		}
 		obj[i] = Object{

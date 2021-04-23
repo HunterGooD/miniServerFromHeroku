@@ -1,6 +1,5 @@
 <template>
   <v-app id="inspire">
-    {{ $router.app.baseURL }}
     <v-dialog
       v-model="dialog"
       fullscreen
@@ -74,9 +73,9 @@
                   </v-img>
                   <v-divider></v-divider>
                   <v-card-subtitle>
-                    Пользователь: {{ user }} <v-divider></v-divider> Координаты:
-                    Longitude - "asd"; Latitude - "sad" <v-divider></v-divider>
-                    Дата:
+                    Пользователь: {{ e.user.fio }} <v-divider></v-divider> Координаты:
+                    Longitude - {{ e.longitude }}; Latitude - {{ e.latitude }} <v-divider></v-divider>
+                    Дата: {{ new Date(e.created_at).toISOString().slice(0,10) }}
                   </v-card-subtitle>
                 </v-card>
               </v-col>
