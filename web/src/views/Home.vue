@@ -63,7 +63,7 @@
               <v-col v-for="e in active_photos" :key="e.id">
                 <v-card elevation="8">
                   <v-img
-                    :src="getUrl(e.path)"
+                    :src="getURL(e.path)"
                     aspect-ratio="16/9"
                     height="400px"
                     contain
@@ -97,12 +97,6 @@ export default {
     items: [],
     user: "",
     active_photos: [
-      {
-        path: "https://picsum.photos/1080/1920",
-      },
-      {
-        path: "https://picsum.photos/1920/1080",
-      },
     ],
     active_storage: [
       {
