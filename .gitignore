@@ -1,4 +1,6 @@
 google.info.json
 example.html
 fotocontroll.db
-*.json
+/dist
+/internal
+/images

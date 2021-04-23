@@ -21,14 +21,14 @@ func (a *App) getStorageByID(c *gin.Context) {
 	c.Header("Content-Type", "application/json")
 	id := c.Param("id")
 	var storageDB StorageDB
-	if err := a.DB.Model(&StorageDB{}).Where("id = ?", id).Preload("Autos.Photos").First(&storageDB).Error; err != nil {
+	if err := a.DB.Model(&StorageDB{}).Where("id = ?", id).Preload("Objects.Photos").First(&storageDB).Error; err != nil {
 		c.JSON(http.StatusOK, map[string]interface{}{
 			"error": "Ошибка получения записей",
 		})
 		return
 	}
-	obj := make([]Object, len(storageDB.Autos))
-	for i, o := range storageDB.Autos {
+	obj := make([]Object, len(storageDB.Objects))
+	for i, o := range storageDB.Objects {
 		phs := make([]Photo, len(o.Photos))
 		for j, p := range o.Photos {
 			phs[j] = Photo{
@@ -41,7 +41,7 @@ func (a *App) getStorageByID(c *gin.Context) {
 		}
 		obj[i] = Object{
 			ID:         o.ID,
-			NameObject: o.NameAuto,
+			NameObject: o.NameObject,
 			Photos:     phs,
 		}
 	}
@@ -110,7 +110,7 @@ func (a *App) getAllInfo(c *gin.Context) {
 		var ag UserDB
 		a.DB.ScanRows(rows, &ag)
 		var addAgent UserDB
-		a.DB.Debug().Model(&UserDB{}).Where("id = ?", ag.ID).Preload("Storages.Autos.Photos").Preload(clause.Associations).First(&addAgent)
+		a.DB.Debug().Model(&UserDB{}).Where("id = ?", ag.ID).Preload("Storages.Objects.Photos").Preload(clause.Associations).First(&addAgent)
 		res = append(res, addAgent)
 	}
 	c.JSON(http.StatusOK, res)
@@ -120,12 +120,12 @@ func (a *App) getStoragesAgent(c *gin.Context) {
 	c.Header("Content-Type", "application/json")
 
 	type AutoS struct {
-		ID       int64  `json:"id"`
+		ID       int    `json:"id"`
 		NameAuto string `json:"name_auto"`
 	}
 
 	type StorageS struct {
-		ID          int64   `json:"id"`
+		ID          int     `json:"id"`
 		NameStorage string  `json:"name_storage"`
 		Address     string  `json:"address"`
 		Autos       []AutoS `json:"autos"`
@@ -149,55 +149,38 @@ func (a *App) getStoragesAgent(c *gin.Context) {
 		})
 		return
 	}
+	u := new(UserDB)
 	// TODO: передалть на Preload
-	rows, err := a.DB.Debug().Table("storage_dbs").
-		Select("storage_dbs.id as storage_id, storage_dbs.name_storage, storage_dbs.address, auto_dbs.id as auto_id, auto_dbs.name_auto").
-		Joins("inner join user_dbs on storage_dbs.user_id = user_dbs.id").
-		Joins("inner join auto_dbs on storage_dbs.id = auto_dbs.storage_id").
-		Where("user_dbs.token = ?", userToken).Rows()
+	err := a.DB.Debug().Model(&UserDB{}).Where("user_dbs.token = ?", userToken).Preload("Storages.Objects").First(u).Error
 
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, map[string]string{
+		c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "Ошибка приложения",
+			"err":   err.Error(),
 		})
 		return
 	}
-	defer rows.Close()
 
 	res := new(Response)
-	var currentID int64
 
-	for rows.Next() {
-		var s = make(map[string]interface{})
-		a.DB.ScanRows(rows, s)
-
-		if s["storage_id"] != currentID {
-			currentID = s["storage_id"].(int64)
-
-			res.Storages = append(res.Storages, StorageS{
-				ID:          currentID,
-				NameStorage: s["name_storage"].(string),
-				Address:     s["address"].(string),
-				Autos: []AutoS{
-					AutoS{
-						ID:       s["auto_id"].(int64),
-						NameAuto: s["name_auto"].(string),
-					},
-				},
+	for _, storage := range u.Storages {
+		stor := new(StorageS)
+		autos := make([]AutoS, len(storage.Objects))
+		for _, a := range storage.Objects {
+			autos = append(autos, AutoS{
+				ID:       int(a.ID),
+				NameAuto: a.NameObject,
 			})
-			continue
 		}
-
-		for i := range res.Storages {
-			if res.Storages[i].ID == currentID {
-				res.Storages[i].Autos = append(res.Storages[i].Autos, AutoS{
-					ID:       s["auto_id"].(int64),
-					NameAuto: s["name_auto"].(string),
-				})
-				break
-			}
+		stor = &StorageS{
+			ID:          int(storage.ID),
+			NameStorage: storage.NameStorage,
+			Address:     storage.Address,
+			Autos:       autos,
 		}
+		res.Storages = append(res.Storages, *stor)
 	}
+
 	c.JSON(http.StatusOK, res)
 }
 
@@ -206,7 +189,7 @@ func (a *App) uploadPhoto(c *gin.Context) {
 	var url string
 	userToken := c.GetHeader("Authorization") // проверить кто это и записать
 	var agent UserDB
-	if err := a.DB.Model(&UserDB{}).Where("token = ?", userToken).Preload("Storages.Autos.Photos").Preload(clause.Associations).First(&agent).Error; err != nil {
+	if err := a.DB.Model(&UserDB{}).Where("token = ?", userToken).Preload("Storages.Objects.Photos").Preload(clause.Associations).First(&agent).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(http.StatusUnauthorized, map[string]string{
 				"error": "Ошибка авторизации",
@@ -248,7 +231,6 @@ func (a *App) uploadPhoto(c *gin.Context) {
 		return
 	}
 
-	// TODO: загружать картинки в папку photos/ с уникальным именем. и записывать в базу
 	photo, photoHeader, err := c.Request.FormFile("photo")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, map[string]string{
@@ -268,9 +250,9 @@ func (a *App) uploadPhoto(c *gin.Context) {
 	hash := createHash([]byte(strconv.Itoa(rand.Int())))
 	for i, s := range agent.Storages {
 		if int(s.ID) == id_storage {
-			for j, o := range s.Autos {
+			for j, o := range s.Objects {
 				if int(o.ID) == id_object {
-					agent.Storages[i].Autos[j].Photos = append(agent.Storages[i].Autos[j].Photos, PhotoDB{
+					agent.Storages[i].Objects[j].Photos = append(agent.Storages[i].Objects[j].Photos, PhotoDB{
 						Path:      hash,
 						Longitude: longitude,
 						Latitude:  latitude,
@@ -281,6 +263,22 @@ func (a *App) uploadPhoto(c *gin.Context) {
 			break
 		}
 	}
+	//TODO: раскомментировать
+	// filePhoto, err := os.Create(hash + ".png")
+	// if err != nil {
+	// 	c.JSON(http.StatusOK, map[string]string{
+	// 		"error": "Ошибка загрузки фотографии",
+	// 	})
+	// 	return
+	// }
+	// defer filePhoto.Close()
+
+	// if _, err := filePhoto.Write(buffer); err != nil {
+	// 	c.JSON(http.StatusOK, map[string]string{
+	// 		"error": "Ошибка загрузки фотографии",
+	// 	})
+	// 	return
+	// }
 
 	if err := a.DB.Save(agent).Error; err != nil {
 		log.Println(err)

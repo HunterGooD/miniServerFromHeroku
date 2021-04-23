@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/gin-gonic/contrib/renders/multitemplate"
 	"github.com/gin-gonic/gin"
 	"github.com/gobuffalo/packr/v2"
 	"gorm.io/gorm"
@@ -23,12 +24,25 @@ func main() {
 	rand.Seed(time.Now().Unix())
 	app := new(App)
 	app.InitDB()
+	if err := os.Mkdir("images/", 0700); err != nil {
+		if os.IsNotExist(err) {
+			panic(err)
+		}
+	}
 
-	htmlFiles := packr.New("htmlFiles", "./web")
-	assetsFile := packr.New("assets", "./web/assets")
+	htmlFiles := packr.New("htmlFiles", "./web/dist")
+	assetsFile := packr.New("assets", "./web/dist/assets")
 	router := gin.Default()
 
-	router.StaticFS("/assets", assetsFile)
+	data, err := htmlFiles.FindString("index.tmpl")
+	if err != nil {
+		panic("html not found")
+	}
+	render := multitemplate.New()
+	render.AddFromString("index.tmpl", data)
+
+	webAppURL := "/web"
+	router.HTMLRender = render
 
 	router.Any("/api/upload", app.uploadPhoto)           // загрузка фото
 	router.POST("/api/signin", app.signIn)               // авторизация в системе
@@ -38,13 +52,12 @@ func main() {
 	router.GET("/api/allInfo", app.getAllInfo)           // показывает всю информацию
 	router.GET("/api/storage/:id", app.getStorageByID)   // показывает объекты склада с его фотографиями
 	router.GET("/api/getStorages", app.getStoragesAgent) // показывает все склады агента
-	router.GET("/", func(c *gin.Context) {
-		data, err := htmlFiles.Find("index.html")
-		if err != nil {
-			panic("html not found")
-		}
-		c.Data(http.StatusOK, "text/html;charset=utf-8", data)
+	router.GET(webAppURL+"/", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.tmpl", gin.H{
+			"webAppURL": webAppURL,
+		})
 	})
+	router.StaticFS(webAppURL+"/assets", assetsFile)
 	// router.GET("/agent/:id", nil)             // показывает скалды агентов
 	// router.GET("/agent/:id/storages", nil)    // список вех складов агента
 	// router.GET("/agent/:id/storage/:id", nil) // список автомобилей с последней датой обновления

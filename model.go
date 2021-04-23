@@ -13,24 +13,24 @@ type UserDB struct {
 	Login    string      `gorm:"size:30;unique"`
 	Password string      `gorm:"size:60"`
 	Token    string      `gorm:"size:64;index"`
-	Storages []StorageDB `gorm:"foreignKey:UserID"`
+	Storages []StorageDB `gorm:"many2many:user_from_storage"`
+	Photo    PhotoDB     `gorm:"foreignKey:UserID"`
 }
 
 //StorageDB  Таблица хранилищпользователя в БД
 type StorageDB struct {
 	gorm.Model
-	NameStorage string   `gorm:"size:60"`
-	Address     string   `gorm:"text"`
-	Autos       []AutoDB `gorm:"foreignKey:StorageID"`
-	UserID      int
+	NameStorage string     `gorm:"size:60"`
+	Address     string     `gorm:"text"`
+	Objects     []ObjectDB `gorm:"foreignKey:StorageID"`
 }
 
-// AutoDB Таблица автомобилей в хранилище
-type AutoDB struct {
+// ObjectID Таблица автомобилей в хранилище
+type ObjectDB struct {
 	gorm.Model
-	NameAuto  string    `gorm:"size:50`
-	Photos    []PhotoDB `gorm:"many2many:auto_photos"`
-	StorageID int
+	NameObject string    `gorm:"size:50`
+	Photos     []PhotoDB `gorm:"foreignKey:ObjectID"` //
+	StorageID  int
 }
 
 // PhotoDB Фотографии автомобилей
@@ -39,6 +39,8 @@ type PhotoDB struct {
 	Path      string `gorm:"size:128`
 	Longitude string
 	Latitude  string
+	UserID    int
+	ObjectID  int
 }
 
 // User Таблица пользователей в БД
